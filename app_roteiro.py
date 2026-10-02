@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+from io import BytesIO
 
 st.set_page_config(page_title="Roteiro Países Baixos", page_icon="🇳🇱", layout="centered")
 
@@ -33,15 +34,17 @@ def get_weather(date_str):
         return "🌦️ Erro ao carregar meteorologia."
 
 
-# --- FUNÇÃO IMAGENS (Solução à prova de falhas) ---
-def render_image(url_part, caption):
-    st.markdown(f'''
-        <div style="text-align: center;">
-            <img src="https://wsrv.nl/?url={url_part}&w=800" style="width:100%; border-radius: 8px;">
-            <p style="font-size: 0.8em; color: gray; margin-top: 5px;">{caption}</p>
-        </div>
-        <br>
-    ''', unsafe_allow_html=True)
+# --- FUNÇÃO IMAGENS (À prova de bloqueios) ---
+@st.cache_data(show_spinner=False)
+def render_image(url, caption):
+    try:
+        # Disfarça o pedido como se fosse um navegador real para contornar a segurança da Wikipedia
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+        resposta = requests.get(url, headers=headers, timeout=5)
+        if resposta.status_code == 200:
+            st.image(BytesIO(resposta.content), caption=caption, use_column_width=True)
+    except Exception:
+        pass
 
 
 # --- CABEÇALHO ---
@@ -60,6 +63,7 @@ with col3:
 
 st.divider()
 
+
 # --- DIAS ---
 tab1, tab2, tab3 = st.tabs(["6 Out: Norte", "7 Out: Centro/Sul", "8 Out: Oeste"])
 
@@ -68,7 +72,7 @@ with tab1:
     st.info(get_weather("2026-10-06"))
     st.markdown("**Logística:** Comboio + Autocarro + Barco")
     
-    render_image("upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Zaanse_Schans_Zuid.jpg/800px-Zaanse_Schans_Zuid.jpg", "Moinhos no rio Zaan")
+    render_image("https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Zaanse_Schans_Zuid.jpg/800px-Zaanse_Schans_Zuid.jpg", "Moinhos no rio Zaan")
     st.markdown("""
     ### Zaanse Schans
     * **11h00:** Partida de *Amsterdam Centraal*.
@@ -80,7 +84,7 @@ with tab1:
     * **13h30 – 14h20:** 🚆 Regresso a *Amsterdam Centraal*. Subir ao terminal de autocarros e apanhar o **Autocarro 316** (EBS). Sair em **Volendam Centrum**.
     """)
     
-    render_image("upload.wikimedia.org/wikipedia/commons/thumb/3/36/Volendam_-_haven_-_2009.jpg/800px-Volendam_-_haven_-_2009.jpg", "Porto de Volendam")
+    render_image("https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Volendam_-_haven_-_2009.jpg/800px-Volendam_-_haven_-_2009.jpg", "Porto de Volendam")
     st.markdown("""
     ### Volendam
     * **14h20 – 16h15 | O que fazer (Almoço):** 
@@ -89,7 +93,7 @@ with tab1:
     * **16h15 – 16h45:** ⛴️ Embarcar no **Marken Express** (travessia de 30 min).
     """)
     
-    render_image("upload.wikimedia.org/wikipedia/commons/thumb/5/51/Marken_-_Haven_1.jpg/800px-Marken_-_Haven_1.jpg", "Casas de madeira verdes em Marken")
+    render_image("https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Marken_-_Haven_1.jpg/800px-Marken_-_Haven_1.jpg", "Casas de madeira verdes em Marken")
     st.markdown("""
     ### Marken
     * **16h45 – 18h00 | O que fazer:** 
@@ -102,7 +106,7 @@ with tab2:
     st.info(get_weather("2026-10-07"))
     st.markdown("**Logística:** Apenas Comboios Intercity (viagens longas)")
     
-    render_image("upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Oudegracht_Utrecht.jpg/800px-Oudegracht_Utrecht.jpg", "Oudegracht (Canal Velho)")
+    render_image("https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Oudegracht_Utrecht.jpg/800px-Oudegracht_Utrecht.jpg", "Oudegracht (Canal Velho)")
     st.markdown("""
     ### Utrecht
     * **08h30:** Partida de *Amsterdam Centraal*.
@@ -114,7 +118,7 @@ with tab2:
     * **13h38 – 15h32:** 🚆 Voltar a *Utrecht Centraal*. Comboio **Intercity** direto para **Maastricht** (1h54 min).
     """)
     
-    render_image("upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Vrijthof_Maastricht.jpg/800px-Vrijthof_Maastricht.jpg", "Praça Vrijthof em Maastricht")
+    render_image("https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Vrijthof_Maastricht.jpg/800px-Vrijthof_Maastricht.jpg", "Praça Vrijthof em Maastricht")
     st.markdown("""
     ### Maastricht
     * **15h40 – 19h00 | O que fazer:** 
@@ -129,7 +133,7 @@ with tab3:
     st.info(get_weather("2026-10-08"))
     st.markdown("**Logística:** Apenas Comboios Intercity + Gestão de Bagagem")
     
-    render_image("upload.wikimedia.org/wikipedia/commons/thumb/1/15/Haarlem_Grote_Markt_Bavo.jpg/800px-Haarlem_Grote_Markt_Bavo.jpg", "Praça Grote Markt em Haarlem")
+    render_image("https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Haarlem_Grote_Markt_Bavo.jpg/800px-Haarlem_Grote_Markt_Bavo.jpg", "Praça Grote Markt em Haarlem")
     st.markdown("""
     ### Haarlem
     * **08h30:** 🧳 **Check-out.** Deixar as malas nos cacifos automáticos da estação *Amsterdam Centraal*.
@@ -140,7 +144,7 @@ with tab3:
     * **12h30 – 13h10:** 🚆 Em Haarlem, comboio **Intercity** (dir. *Den Haag* ou *Rotterdam*). Sair em **Delft**.
     """)
     
-    render_image("upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Delft_canal_view.jpg/800px-Delft_canal_view.jpg", "Canais em Delft")
+    render_image("https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Delft_canal_view.jpg/800px-Delft_canal_view.jpg", "Canais em Delft")
     st.markdown("""
     ### Delft
     * **13h15 – 17h00 | O que fazer:** 
