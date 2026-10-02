@@ -1,12 +1,54 @@
 import streamlit as st
+import requests
 
 st.set_page_config(page_title="Roteiro Países Baixos", page_icon="🇳🇱", layout="centered")
 
-st.title("🇳🇱 Roteiro Expresso: Países Baixos")
-st.markdown("**6 a 8 de Outubro | Base: Amsterdam Centraal**")
-st.caption("Check-in/Check-out obrigatório com cartão bancário/telemóvel (OVpay) nos transportes.")
+# --- FUNÇÃO METEOROLOGIA ---
+@st.cache_data(ttl=3600) # Atualiza a previsão a cada hora para não sobrecarregar
+def get_weather(date_str):
+    try:
+        # Coordenadas centrais (Amesterdão/Utrecht)
+        url = "https://api.open-meteo.com/v1/forecast?latitude=52.3676&longitude=4.9041&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Europe%2FAmsterdam"
+        resp = requests.get(url).json()
+        dates = resp['daily']['time']
+        
+        if date_str in dates:
+            idx = dates.index(date_str)
+            max_t = resp['daily']['temperature_2m_max'][idx]
+            min_t = resp['daily']['temperature_2m_min'][idx]
+            rain = resp['daily']['precipitation_probability_max'][idx]
+            code = resp['daily']['weathercode'][idx]
+            
+            weather_map = {
+                0: "☀️ Limpo", 1: "🌤️ Parcialmente nublado", 2: "⛅ Nublado", 3: "☁️ Muito nublado",
+                45: "🌫️ Nevoeiro", 48: "🌫️ Nevoeiro gelado",
+                51: "🌧️ Chuvisco", 53: "🌧️ Chuvisco moderado", 55: "🌧️ Chuvisco forte",
+                61: "🌧️️ Chuva leve", 63: "🌧️ Chuva", 65: "🌧️ Chuva forte",
+                80: "🌦️ Aguaceiros", 81: "🌦️ Aguaceiros fortes", 95: "⛈️ Trovoada"
+            }
+            desc = weather_map.get(code, "🌈 Variável")
+            return f"**Meteorologia (Atualizada):** {desc} | 🌡️ {min_t}°C a {max_t}°C | ☔ Chuva: {rain}%"
+        else:
+            return "🌦️ Previsão meteorológica ainda não disponível (fora do alcance de 7 dias)."
+    except Exception:
+        return "🌦️ Erro ao carregar meteorologia."
 
-# Botões de acesso rápido aos transportes
+# --- FUNÇÃO IMAGENS (Bypass Wikipedia 403) ---
+def render_image(url, caption):
+    st.markdown(f'''
+        <figure style="margin: 0; padding: 0;">
+            <img src="{url}" style="width:100%; border-radius: 8px;">
+            <figcaption style="font-size: 0.8em; color: gray; text-align: center; margin-top: 5px;">{caption}</figcaption>
+        </figure>
+        <br>
+    ''', unsafe_allow_html=True)
+
+
+# --- CABEÇALHO ---
+st.title("🇳🇱 Roteiro Expresso: Países Baixos")
+st.markdown("**6 a 8 de Outubro | Mário e Maria João**")
+st.caption("Base: Amsterdam Centraal | Check-in/out obrigatório nos transportes (OVpay).")
+
 st.markdown("### 📱 Bilhetes e Horários")
 col1, col2, col3 = st.columns(3)
 with col1:
@@ -18,68 +60,97 @@ with col3:
 
 st.divider()
 
-# Navegação por dias
+# --- DIAS ---
 tab1, tab2, tab3 = st.tabs(["6 Out: Norte", "7 Out: Centro/Sul", "8 Out: Oeste"])
 
 with tab1:
     st.header("Moinhos e Tradição Piscatória")
+    st.info(get_weather("2026-10-06"))
     st.markdown("**Logística:** Comboio + Autocarro + Barco")
     
-    st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Zaanse_Schans_Zuid.jpg/800px-Zaanse_Schans_Zuid.jpg", caption="Zaanse Schans")
+    render_image("https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Zaanse_Schans_Zuid.jpg/800px-Zaanse_Schans_Zuid.jpg", "Moinhos no rio Zaan")
     st.markdown("""
-    * **11h00:** Partida da estação *Amsterdam Centraal*.
-    * **11h15 – 11h35:** 🚆 Comboio **Sprinter** (dir. *Uitgeest*). Sair em **Zaandijk Zaanse Schans**.
-    * **11h45 – 13h30:** 📍 Caminhada de 15 min e visita aos moinhos, fábrica de queijo e tamancos.
-    * **13h30 – 14h20:** 🚆 Comboio **Sprinter** de regresso a *Amsterdam Centraal*. Subir ao terminal de autocarros (piso superior) e apanhar o **Autocarro 316** (EBS). Sair em **Volendam Centrum**.
+    ### Zaanse Schans
+    * **11h00:** Partida de *Amsterdam Centraal*.
+    * **11h15 – 11h35:** 🚆 **Sprinter** (dir. *Uitgeest*). Sair em **Zaandijk Zaanse Schans**.
+    * **11h45 – 13h30 | O que fazer:** 
+        * Caminhar ao longo do rio Zaan para ver os 8 moinhos de vento históricos.
+        * Entrar na **Catharina Hoeve**, uma réplica de uma quinta do séc. XVII, para ver como é feito o queijo Gouda e fazer provas gratuitas.
+        * Passar na oficina de tamancos (**Kooijman**) para ver uma demonstração ao vivo da escultura em madeira.
+    * **13h30 – 14h20:** 🚆 Regresso a *Amsterdam Centraal*. Subir ao terminal de autocarros e apanhar o **Autocarro 316** (EBS). Sair em **Volendam Centrum**.
     """)
     
-    st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Volendam_-_haven_-_2009.jpg/800px-Volendam_-_haven_-_2009.jpg", caption="Porto de Volendam")
+    render_image("https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Volendam_-_haven_-_2009.jpg/800px-Volendam_-_haven_-_2009.jpg", "Porto de Volendam")
     st.markdown("""
-    * **14h20 – 16h15:** 📍 Almoço rápido nas bancas do porto (Kibbeling ou arenque cru).
-    * **16h15 – 16h45:** ⛴️ Embarcar no **Marken Express** (bilhetes no quiosque do porto). Travessia de 30 minutos.
+    ### Volendam
+    * **14h20 – 16h15 | O que fazer (Almoço):** 
+        * Caminhar pela **De Dijk**, a animada rua principal mesmo em cima do dique.
+        * Sendo apreciadores de marisco/peixe, ignorem os restaurantes turísticos e procurem uma banca de rua (*Vishandel*). Peçam **Kibbeling** (lascas de bacalhau/pescada fritas com molho de alho) e, se forem corajosos, um **Haring** (arenque cru com cebola e pickles).
+    * **16h15 – 16h45:** ⛴️ Embarcar no **Marken Express** (travessia de 30 min).
     """)
     
-    st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Marken_-_Haven_1.jpg/800px-Marken_-_Haven_1.jpg", caption="Casas tradicionais de Marken")
+    render_image("https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Marken_-_Haven_1.jpg/800px-Marken_-_Haven_1.jpg", "Casas de madeira verdes em Marken")
     st.markdown("""
-    * **16h45 – 18h00:** 📍 Visita a pé à ilha de Marken (casas de madeira verdes).
+    ### Marken
+    * **16h45 – 18h00 | O que fazer:** 
+        * Ao contrário de Volendam, Marken é super silenciosa. Percorram as ruelas estreitas (os *werven*) para ver as autênticas casas de madeira pintadas de verde escuro, muitas delas construídas sobre estacas de madeira para resistirem às inundações de antigamente.
     * **18h00 – 18h45:** 🚌 Apanhar **Autocarro 315** (paragem *Minneweg*), trocar para o **Metro 52** na estação *Amsterdam Noord*, até *Amsterdam Centraal*.
     """)
 
 with tab2:
     st.header("O Centro e o Extremo Sul")
+    st.info(get_weather("2026-10-07"))
     st.markdown("**Logística:** Apenas Comboios Intercity (viagens longas)")
     
-    st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Oudegracht_Utrecht.jpg/800px-Oudegracht_Utrecht.jpg", caption="Oudegracht em Utrecht")
+    render_image("https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Oudegracht_Utrecht.jpg/800px-Oudegracht_Utrecht.jpg", "Oudegracht (Canal Velho) com caves ao nível da água")
     st.markdown("""
+    ### Utrecht
     * **08h30:** Partida de *Amsterdam Centraal*.
-    * **08h40 – 09h07:** 🚆 Comboio **Intercity** (dir. *Maastricht* ou *Heerlen*). Sair em **Utrecht Centraal**.
-    * **09h15 – 12h30:** 📍 Caminhada pelo centro e base da Torre Dom.
-    * **12h30 – 13h30:** 📍 Almoço nas esplanadas das caves (*werfkelders*) ao nível da água no **Oudegracht**.
+    * **08h40 – 09h07:** 🚆 **Intercity** (dir. *Maastricht* ou *Heerlen*). Sair em **Utrecht Centraal**.
+    * **09h15 – 13h30 | O que fazer:** 
+        * Utrecht é famosa pelos **werfkelders**: antigas caves de mercadores do século XIII construídas literalmente ao nível da água do canal. Muitas são hoje cafés.
+        * Caminhem ao longo do **Oudegracht** (Canal Velho).
+        * Vão até à **Torre Dom**. Se tiverem energia, podem subir os 465 degraus para a melhor vista do país (ou apenas apreciar do chão a imponência da torre separada da sua igreja por um furacão antigo).
+        * **12h30:** Almocem numa das esplanadas em baixo, junto à água.
     * **13h38 – 15h32:** 🚆 Voltar a *Utrecht Centraal*. Comboio **Intercity** direto para **Maastricht** (1h54 min).
     """)
     
-    st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Vrijthof_Maastricht.jpg/800px-Vrijthof_Maastricht.jpg", caption="Praça Vrijthof em Maastricht")
+    render_image("https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Vrijthof_Maastricht.jpg/800px-Vrijthof_Maastricht.jpg", "Praça Vrijthof em Maastricht")
     st.markdown("""
-    * **15h40 – 19h00:** 📍 Visita à praça **Vrijthof**, livraria dominicana e prova de vinho local.
+    ### Maastricht
+    * **15h40 – 19h00 | O que fazer:** 
+        * Esta cidade respira história romana e francesa. Caminhem até à imensa **Praça Vrijthof**, rodeada de igrejas e esplanadas clássicas.
+        * É obrigatório entrar na **Boekhandel Dominicanen**, frequentemente considerada a livraria mais bonita do mundo, instalada dentro de uma igreja gótica do século XIII.
+        * Passeiem pela **Stokstraat**, a rua das boutiques de luxo na zona mais antiga da cidade.
+        * **17h30 (Vinho local):** Sentem-se numa esplanada clássica (como o café *In Den Ouden Vogelstruys*, o mais antigo da cidade) e, como conhecedores de vinhos, peçam para provar um copo da quinta vinícola **Apostelhoeve** (a vinha holandesa mais prestigiada, situada nas colinas de Maastricht).
     * **19h00 – 21h30:** 🚆 Comboio **Intercity** direto de regresso a *Amsterdam Centraal* (2h25 min).
     """)
 
 with tab3:
     st.header("As Cidades de Ouro e Regresso")
+    st.info(get_weather("2026-10-08"))
     st.markdown("**Logística:** Apenas Comboios Intercity + Gestão de Bagagem")
     
-    st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Haarlem_Grote_Markt_Bavo.jpg/800px-Haarlem_Grote_Markt_Bavo.jpg", caption="Grote Markt em Haarlem")
+    render_image("https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Haarlem_Grote_Markt_Bavo.jpg/800px-Haarlem_Grote_Markt_Bavo.jpg", "Praça Grote Markt em Haarlem")
     st.markdown("""
-    * **08h30:** 🧳 Check-out. Deixar as malas nos cacifos da estação *Amsterdam Centraal*.
-    * **09h05 – 09h20:** 🚆 Comboio **Intercity** (dir. *Haarlem* ou *Zandvoort*). 15 min de viagem.
-    * **09h25 – 12h30:** 📍 Caminhada até à **Grote Markt**, Igreja de São Bavão e *Gouden Straatjes*.
+    ### Haarlem
+    * **08h30:** 🧳 **Check-out.** Deixar as malas nos cacifos automáticos da estação *Amsterdam Centraal*.
+    * **09h05 – 09h20:** 🚆 **Intercity** (dir. *Haarlem* ou *Zandvoort*). 15 min de viagem.
+    * **09h25 – 12h30 | O que fazer:** 
+        * Haarlem é apelidada de "pequena Amesterdão" mas sem a confusão. Vão à **Grote Markt** para admirar a imponente Igreja de São Bavão (o órgão histórico já foi tocado por Mozart quando era criança).
+        * Caminhem pelas **Gouden Straatjes** (as "ruas douradas"), as melhores ruas para compras independentes nos Países Baixos.
+        * Dêem um salto à **Jopenkerk** (uma igreja convertida numa cervejaria deslumbrante) para ver a arquitetura fantástica interior.
     * **12h30 – 13h10:** 🚆 Em Haarlem, comboio **Intercity** (dir. *Den Haag* ou *Rotterdam*). Sair em **Delft**.
     """)
     
-    st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Delft_canal_view.jpg/800px-Delft_canal_view.jpg", caption="Canais de Delft")
+    render_image("https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Delft_canal_view.jpg/800px-Delft_canal_view.jpg", "Canais ladeados por árvores em Delft")
     st.markdown("""
-    * **13h15 – 14h30:** 📍 Almoço na Praça do Mercado.
-    * **14h30 – 17h00:** 📍 Visita ao canal *Oude Delft*, olarias históricas e Nieuwe Kerk.
-    * **17h00 – 18h15:** 🚆 Comboio **Intercity** de Delft para *Amsterdam Centraal* (55 min). Recolha das malas nos cacifos, seguida de comboio para o Aeroporto de Schiphol (15 min).
-    * **18h30:** 🛫 Chegada a Schiphol. Check-in e embarque no voo KL 1587.
+    ### Delft
+    * **13h15 – 17h00 | O que fazer:** 
+        * A cidade natal do pintor Vermeer é um cartão-postal de canais refletivos. Almocem na **Praça do Mercado**.
+        * Visitem a **Nieuwe Kerk**, onde está o mausoléu de Guilherme de Orange e os túmulos da família real holandesa.
+        * Percorram o sereno canal **Oude Delft** e entrem numa loja histórica de olaria para ver a autêntica cerâmica **Delft Blue** pintada à mão.
+    * **17h00 – 18h15:** 🚆 Comboio **Intercity** de Delft para *Amsterdam Centraal* (55 min). 
+    * **18h15 – 18h30 | Aeroporto:** Recolha das malas nos cacifos da estação, seguida de qualquer comboio para o Aeroporto de **Schiphol** (apenas 15 min de viagem).
+    * **18h45:** 🛫 Chegada a Schiphol. Check-in com total tranquilidade para o voo KL 1587 às 20h50.
     """)
