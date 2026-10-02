@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+from io import BytesIO
 
 st.set_page_config(page_title="Roteiro Países Baixos", page_icon="🇳🇱", layout="centered")
 
@@ -20,10 +21,10 @@ def get_weather(date_str):
             
             weather_map = {
                 0: "☀️ Limpo", 1: "🌤️ Parcialmente nublado", 2: "⛅ Nublado", 3: "☁️ Muito nublado",
-                45: "🌫️️ Nevoeiro", 48: "🌫️ Nevoeiro gelado",
-                51: "🌧️ Chuvisco", 53: "🌧️️ Chuvisco moderado", 55: "🌧️ Chuvisco forte",
-                61: "🌧 Chuva leve", 63: "🌧️️ Chuva", 65: "🌧️ Chuva forte",
-                80: "🌦 Aguaceiros", 81: "🌦️ Aguaceiros fortes", 95: "⛈️ Trovoada"
+                45: "🌫 Nevoeiro", 48: "🌫️ Nevoeiro gelado",
+                51: "🌧️ Chuvisco", 53: "🌧 Chuvisco moderado", 55: "🌧️ Chuvisco forte",
+                61: "🌧 Chuva leve", 63: "🌧 Chuva", 65: "🌧️ Chuva forte",
+                80: "🌦 Aguaceiros", 81: "🌦️ Aguaceiros fortes", 95: "⛈️️ Trovoada"
             }
             desc = weather_map.get(code, "🌈 Variável")
             return f"**Meteorologia:** {desc} | 🌡️ {min_t}°C a {max_t}°C | ☔ Chuva: {rain}%"
@@ -92,10 +93,11 @@ with tab1:
     st.markdown("**Logística:** Elétrico + Comboio + Autocarro + Barco")
     
     st.markdown("""
-    ### Manhã: Conferência
-    * **08h30:** Pequeno-almoço no **[Clayton Hotel](https://maps.google.com/?q=Clayton+Hotel+Amsterdam+American)**.
-    * **09h00:** Deslocação do hotel para o local do evento (*Sustainability Week Europe*).
-    * **10h30:** Deslocação do local do evento para a estação **[Amsterdam Centraal](https://maps.google.com/?q=Amsterdam+Centraal)** para iniciar o roteiro turístico.
+    ### Manhã: Conferência no Mövenpick
+    * **06h50:** Pequeno-almoço no **[Clayton Hotel](https://maps.google.com/?q=Clayton+Hotel+Amsterdam+American)**.
+    * **07h25 – 07h55 | Deslocação (30 min):** Caminhada de 3 min até à paragem *Leidseplein*. Apanhar o **Elétrico 2 ou 12** até *Amsterdam Centraal*. A partir daí, são cerca de 10 min a pé pelas margens até ao hotel do evento (ou 1 paragem no Elétrico 26).
+    * **08h00:** Início do evento no **[Mövenpick Hotel Amsterdam](https://maps.google.com/?q=Movenpick+Hotel+Amsterdam+City+Centre)**.
+    * **10h30 – 10h45:** Caminhada de regresso do Mövenpick à estação **[Amsterdam Centraal](https://maps.google.com/?q=Amsterdam+Centraal)** para iniciar o roteiro turístico.
     """)
     
     render_image("https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Zaanse_Schans_Zuid.jpg/800px-Zaanse_Schans_Zuid.jpg", "Moinhos no rio Zaan")
