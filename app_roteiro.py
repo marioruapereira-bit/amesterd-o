@@ -24,12 +24,12 @@ def get_weather(date_str):
                 45: "🌫 Nevoeiro", 48: "🌫️ Nevoeiro gelado",
                 51: "🌧️ Chuvisco", 53: "🌧 Chuvisco moderado", 55: "🌧️ Chuvisco forte",
                 61: "🌧 Chuva leve", 63: "🌧 Chuva", 65: "🌧️ Chuva forte",
-                80: "🌦 Aguaceiros", 81: "🌦️ Aguaceiros fortes", 95: "⛈️️ Trovoada"
+                80: "🌦 Aguaceiros", 81: "🌦️ Aguaceiros fortes", 95: "⛈ Trovoada"
             }
             desc = weather_map.get(code, "🌈 Variável")
             return f"**Meteorologia:** {desc} | 🌡️ {min_t}°C a {max_t}°C | ☔ Chuva: {rain}%"
         else:
-            return "🌦️ Previsão meteorológica indisponível."
+            return "🌦️️ Previsão meteorológica indisponível."
     except Exception:
         return "🌦️ Erro ao carregar meteorologia."
 
@@ -47,7 +47,7 @@ def render_image(url, caption):
 
 # --- CABEÇALHO ---
 st.title("🇳🇱 Roteiro Expresso: Países Baixos")
-st.markdown("**5 a 8 de Outubro | Mário Pereira e Elvira Carlota**")
+st.markdown("**5 a 8 de Outubro | Amesterdão e Arredores**")
 st.caption("Check-in/out obrigatório nos transportes públicos com cartão bancário (OVpay).")
 
 st.markdown("### 📱 Bilhetes e Horários")
@@ -83,7 +83,7 @@ with tab0:
     st.markdown("""
     **Dia 8 de Outubro (Regresso)**
     * 🚘 **Transfer (17h28):** Do Hotel para o Aeroporto. *Aguardar no lobby do hotel com a bagagem às 17h15.*
-    * ✈️ **Voo KL 1587:** AMS 20h50 ➔ LIS 22h50
+    * ✈️️ **Voo KL 1587:** AMS 20h50 ➔ LIS 22h50
     """)
     st.link_button("Ver Estado do Voo KL 1587", "https://www.google.com/search?q=KL+1587+flight+status")
 
